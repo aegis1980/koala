@@ -11,6 +11,7 @@ from __future__ import absolute_import, division
 import itertools
 import numpy as np
 import scipy.optimize
+from scipy.interpolate import interp1d
 import datetime
 import random
 from math import log, ceil
@@ -64,6 +65,7 @@ IND_FUN = [
     "COUNTIFS",
     "DATE",
     "EOMONTH",
+    "FORECAST",
     "GAMMALN",  # see lgamma, a Python function, redefined in function map above
     "IF",  # see astnodes.py, not defined here
     "IFERROR",
@@ -322,6 +324,32 @@ def eomonth(start_date, months):  # Excel reference: https://support.office.com/
     res = int(int_from_date(datetime.date(y2, m2, d2)))
 
     return res
+
+
+def forecast(x, known_x, known_y):
+
+    if not isinstance(value,(int,float)):
+        return Exception("Non numeric forecasting (%s) not supported" % value)
+
+    if isinstance(known_x, Range):
+        known_x = known_x.values
+
+    if is_not_number_input(known_x):
+        return numeric_error(known_x, 'values')
+    
+    if isinstance(known_y, Range):
+        known_y = known_y.values
+
+    if is_not_number_input(known_y):
+        return numeric_error(known_y, 'values')
+
+    f1 = interp1d(known_x, known_y, kind='nearest')
+
+    return f1(x)
+
+
+
+
 
 
 def iferror(value, value_if_error):  # Excel reference: https://support.office.com/en-us/article/IFERROR-function-c526fd07-caeb-47b8-8bb6-63f3e417f611
