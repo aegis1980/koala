@@ -67,6 +67,7 @@ IND_FUN = [
     "EOMONTH",
     "FORECAST",
     "GAMMALN",  # see lgamma, a Python function, redefined in function map above
+    "HLOOKUP",
     "IF",  # see astnodes.py, not defined here
     "IFERROR",
     "INDEX",  # see astnodes.py
@@ -90,6 +91,7 @@ IND_FUN = [
     "PI",  # see astnodes.py, not defined here
     "PMT",
     "POWER",
+    "QUOTIENT",
     "RAND",
     "RANDBETWEEN",
     "RIGHT",
@@ -348,6 +350,24 @@ def forecast(x, known_x, known_y):
     return f1(x)
 
 
+def hlookup(value, lookup_range, row_index_num, range_lookup = False):  # Excel reference: https://support.microsoft.com/en-us/office/hlookup-function-a3034eec-b719-4ba3-bb65-e1ad662ed95f
+
+    
+    if not isinstance(lookup_range, Range):
+        return ExcelError('#VALUE!', 'Lookup_range is not a Range')
+
+    if not isinstance(row_index_num,int):
+        return ExcelError('#VALUE!', 'row_index_num not an integer')
+
+    arr = np.array(lookup_range.values)
+    print(value, lookup_range.values,row_index_num)
+    matrix = np.reshape(arr,(lookup_range.nrows,lookup_range.ncols))
+
+    col = np.where(matrix[0] == value)
+
+    # TODO rangelookup
+    result = matrix[row_index_num-1][col]
+    return result
 
 
 
@@ -739,6 +759,23 @@ def power(number, power):
         return ExcelError('#NUM!', '%s must be non-negative' % str(number))
 
     return np.power(number, power)
+
+
+# https://support.microsoft.com/en-us/office/quotient-function-9f7bf099-2a18-4282-8fa4-65290cc99de
+def quotient(numerator, denominator):
+
+    if denominator == 0:
+        # Really excel?  What were you thinking?
+        return ExcelError('#DIV/0!', "Demoninator can't be zero")
+
+    if not is_number(numerator):
+        return ExcelError('#VALUE!', '%s is not a number' % str(numerator))
+    if not is_number(denominator):
+        return ExcelError('#VALUE!', '%s is not a number' % str(denominator))
+
+    return numerator//denominator
+
+
 
 
 # https://support.office.com/en-us/article/rand-function-4cbfa695-8869-4788-8d90-021ea9f5be73
